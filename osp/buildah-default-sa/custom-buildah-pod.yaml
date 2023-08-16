@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: buildah-userns
+  namespace: test
+  annotations:
+    io.kubernetes.cri-o.userns-mode: "auto:size=65536;map-to-root=true"
+    io.openshift.userns: "true"
+    io.openshift.builder: "true"
+spec:
+  containers:
+    - name: userns
+      image: ghcr.io/vdemeester/test/buildah:userns
+      # resources:
+      #   limits:
+      #     cpu: 100m
+      #     memory: 1G
+      securityContext:
+        runAsUser: 1000680000

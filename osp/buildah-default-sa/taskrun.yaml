@@ -1,0 +1,48 @@
+# profiles/unshare.json
+apiVersion: tekton.dev/v1beta1
+kind: TaskRun
+metadata:
+  generateName: foo-is-bar-
+  annotations:
+    io.openshift.builder: "true"
+    io.kubernetes.cri-o.userns-mode:
+      "auto:size=65536;map-to-root=true"
+spec:
+  serviceAccountName: bar
+  podTemplate:
+    securityContext:
+      # runAsUser: 1000650000
+      runAsUser: 1000680000
+  taskSpec:
+    steps:
+    - name: who-am-i
+      image: registry.fedoraproject.org/fedora:35-x86_64
+      script: |
+        id
+    - name: buildah-run
+      # image: registry.redhat.io/rhel8/buildah@sha256:30fc759d3453a0f9aba2164a0ea7b1aacd65c801abb07f3478ebd4ed7a90aa8f
+      image: quay.io/buildah/stable
+      script: |
+        id
+        pwd
+        ls -la /root
+        ls -la
+        cd /tmp
+        #env
+        #ls -l  /usr/bin/newuidmap /usr/bin/newgidmap
+        #getfattr -d -m '.*' /usr/bin/newuidmap /usr/bin/newgidmap || true
+        #echo $$
+        #ls /proc/*/ || true
+        #cat /proc/$$/gid_map || true
+        #cat /proc/*/gid_map || true
+        sleep 20
+        dnf install -y htop git-lfs
+        cat <<EOF >Dockerfile
+        FROM fedora:35
+        RUN echo foo is bar
+        EOF
+        # buildah unshare
+        buildah bud --isolation=chroot --storage-driver=vfs --no-cache -f Dockerfile -t foo .
+      securityContext:
+        capabilities:
+          add: ["SETFCAP", "SETUID"]

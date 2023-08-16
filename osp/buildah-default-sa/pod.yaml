@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: fedora
+  annotations:
+    io.openshift.userns: "true"
+    io.kubernetes.cri-o.userns-mode: "auto:size=65536"
+spec:
+  containers:
+  - name: fedora
+    image: registry.fedoraproject.org/fedora:35-x86_64
+    command: ["sleep", "3600"]
